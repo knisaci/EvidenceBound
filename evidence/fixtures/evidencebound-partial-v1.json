@@ -1,0 +1,42 @@
+{
+  "fixture_type": "synthetic_consensus_test",
+  "fixture_version": "1.0",
+  "subject": "Synthetic funding-record audit",
+  "period": {
+    "start": "2026-08-01",
+    "end": "2026-08-31"
+  },
+  "summary": {
+    "total_records": 20,
+    "claimed_records": 17,
+    "locked_records": 3,
+    "funding_records_verified": 20,
+    "funding_mismatches": 0
+  },
+  "records": [
+    {"id": "deal-001", "status": "claimed", "funding_verified": true},
+    {"id": "deal-002", "status": "claimed", "funding_verified": true},
+    {"id": "deal-003", "status": "claimed", "funding_verified": true},
+    {"id": "deal-004", "status": "claimed", "funding_verified": true},
+    {"id": "deal-005", "status": "claimed", "funding_verified": true},
+    {"id": "deal-006", "status": "claimed", "funding_verified": true},
+    {"id": "deal-007", "status": "claimed", "funding_verified": true},
+    {"id": "deal-008", "status": "claimed", "funding_verified": true},
+    {"id": "deal-009", "status": "claimed", "funding_verified": true},
+    {"id": "deal-010", "status": "claimed", "funding_verified": true},
+    {"id": "deal-011", "status": "claimed", "funding_verified": true},
+    {"id": "deal-012", "status": "claimed", "funding_verified": true},
+    {"id": "deal-013", "status": "claimed", "funding_verified": true},
+    {"id": "deal-014", "status": "claimed", "funding_verified": true},
+    {"id": "deal-015", "status": "claimed", "funding_verified": true},
+    {"id": "deal-016", "status": "claimed", "funding_verified": true},
+    {"id": "deal-017", "status": "claimed", "funding_verified": true},
+    {"id": "deal-018", "status": "locked", "funding_verified": true},
+    {"id": "deal-019", "status": "locked", "funding_verified": true},
+    {"id": "deal-020", "status": "locked", "funding_verified": true}
+  ],
+  "expected_interpretation": {
+    "verdict": "PARTIALLY_VERIFIED",
+    "reason": "All 20 funding records are verified, but only 17 records have claimed status."
+  }
+}
