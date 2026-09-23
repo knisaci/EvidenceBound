@@ -3,7 +3,7 @@
 EvidenceBound is a standalone GenLayer Intelligent Contract for adjudicating a
 precisely scoped claim against declared public evidence.
 
-It is not a general-purpose fact checker. Version 0.1 deliberately supports one
+It is not a general-purpose fact checker. Version 0.2 deliberately supports one
 bounded evaluation profile: `RECORD_SET_CLAIM_V1`, for claims about operational
 record sets such as audits, service reports, grant outputs, or agent work logs.
 
@@ -15,10 +15,10 @@ material contradiction, or lacks sufficient evidence. EvidenceBound combines:
 
 - deterministic input validation and state transitions;
 - independent web retrieval by leader and validators;
-- structured LLM extraction and adjudication;
-- exact equivalence checks on the verdict, reason codes, confidence bucket, and
-  claim-critical facts;
-- flexible prose only for the human-readable explanation.
+- structured LLM extraction into seven fixed fact fields;
+- strict equality consensus over one canonical fact object; and
+- deterministic derivation of the verdict, confidence, reason codes, and
+  explanation after consensus.
 
 Validators re-run the evidence evaluation. They do not merely validate the
 leader's JSON format.
@@ -29,10 +29,11 @@ leader's JSON format.
    expected facts, time period, and evidence-manifest digest.
 2. The contract stores the claim as `PENDING`.
 3. Anyone may call `resolve_claim(claim_id)`.
-4. The leader retrieves and evaluates the evidence.
-5. Validators independently retrieve and evaluate the same evidence.
-6. State changes only when the critical result fields reach consensus.
-7. The accepted adjudication is immutable in v0.1.
+4. The leader retrieves the evidence and extracts the fixed fact schema.
+5. Validators independently retrieve the evidence and extract the same schema.
+6. `strict_eq` requires exact equality of the canonical extracted facts.
+7. Deterministic code compares those facts with the submitted expected facts.
+8. The accepted adjudication is immutable in v0.2.
 
 ## Verdicts
 
@@ -76,14 +77,14 @@ Do not submit the contribution until the contract has reached consensus on at
 least one supported, one partially supported, and one insufficient-evidence
 fixture.
 
-## Important v0.1 limits
+## Important v0.2 limits
 
 - Maximum five HTTPS evidence sources.
 - Only `RECORD_SET_CLAIM_V1` is accepted.
 - Web evidence can change. The supplied manifest digest is a commitment, but
   this version does not yet recompute the digest inside GenVM.
-- The contract stores an immutable adjudication; revision chains are planned
-  for v0.2.
+- The contract stores an immutable adjudication; revision chains are not yet
+  supported.
 - Private or authenticated evidence is not supported.
 
 ## Reference demonstration
@@ -91,16 +92,28 @@ fixture.
 A claim states that twenty deals were all `claimed`. The evidence shows twenty
 verified funding records but includes both `claimed` and `locked` states. A
 responsible result is `PARTIALLY_VERIFIED` with reason code
-`STATUS_SCOPE_MISMATCH`: the count is supported, but the status wording is not.
+`CLAIMED_RECORDS_MISMATCH`: the funding count is supported, but the claimed
+record count is not.
 
 The repository includes this scenario as an explicitly synthetic fixture at
 `evidence/fixtures/evidencebound-partial-v1.json`.
 
-## Bradbury deployment
+## Bradbury v0.1 test — retired
 
 - Contract: `0xE3C2d8B982380ca2034b41d3F9D4d2eD8dE65a1E`
 - Deployment transaction: `0x973e76e1150714a70009bebd27a6561af0fbbaecb44b417c9352c254c30128df`
+- Resolution transaction: `0x3d6e13e6aaf8e59f9be86ab0def6b217b4737b77999dddde28ba2fb537a01842`
 - Network: GenLayer Testnet Bradbury (Phase 1)
+
+The v0.1 resolution ended `undetermined` after an appeal overturned an accepted
+result. Validators agreed on `PARTIALLY_VERIFIED` but produced different
+confidence labels and reason-code wording. That exposed an overly broad and
+brittle equivalence rule. This address is retained as a test record only and
+must not be used as the contribution deployment.
+
+Version 0.2 fixes the failure by asking consensus only for a canonical fixed
+fact object. A new Bradbury address will be recorded after v0.2 is deployed and
+passes the same scenario.
 
 ## Repository layout
 
@@ -114,5 +127,6 @@ evidence/fixtures/                Synthetic public consensus fixtures
 
 ## Status
 
-This is an initial v0.1 implementation intended for local linting, direct tests,
-and validator tuning before contribution submission.
+Version 0.2 passes local direct tests, the GenVM linter, and SDK semantic
+validation. Bradbury multi-validator testing is the remaining gate before
+contribution submission.
