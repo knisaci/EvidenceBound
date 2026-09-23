@@ -1,75 +1,39 @@
-# EvidenceBound: Your Step-by-Step Runbook
+# EvidenceBound v0.2: Step-by-Step Runbook
 
-You do not need to design or edit the contract before beginning.
+The v0.1 contract is retired. Do not call it again and do not appeal its
+undetermined transaction. The next deployment must use v0.2 source.
 
-## Step 1 — Check your computer
+## Step 1 — Open hosted GenLayer Studio
 
-Open Terminal on your Mac and run each command separately:
+Go to <https://studio.genlayer.com>. No Homebrew, local Python, Node, Docker, or
+Terminal setup is required for this route.
 
-```bash
-python3 --version
-node --version
-git --version
-```
+## Step 2 — Create the replacement contract
 
-For this first stage, Python must be 3.12 or newer. Node is not needed for the
-direct tests, but version 18 or newer will be needed for GenLayer tooling.
+Create a new contract, paste the complete v0.2 source from
+`contracts/evidence_bound.py`, compile it, and deploy it to Testnet Bradbury.
+The old contract cannot be upgraded in place.
 
-If Python is older than 3.12, stop and report the three outputs. Do not start
-installing random packages yet.
+## Step 3 — Record the deployment
 
-## Step 2 — Download and unzip the package
+Copy the new contract address and deployment transaction ID. Confirm that the
+source begins with `EvidenceBound v0.2` before proceeding.
 
-Download `EvidenceBound_v0.1.zip` and unzip it. In Terminal, enter the folder.
-The easiest method is to type `cd ` including the trailing space, drag the
-unzipped `EvidenceBound` folder into Terminal, and press Return.
+## Step 4 — Run the partial-evidence scenario
 
-## Step 3 — Create an isolated Python environment
+Submit one claim using the immutable raw GitHub URL and values recorded in the
+repository after the v0.2 commit. Then call `resolve_claim("claim-1")` once.
+Wait for the full appeal and finalization process; an intermediate `accepted`
+status is not the final result.
 
-Run:
+## Step 5 — Submission preparation
 
-```bash
-python3.12 -m venv .venv
-source .venv/bin/activate
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-```
+Only after v0.2 multi-validator tests pass will we:
 
-Your prompt should now begin with `(.venv)`.
-
-## Step 4 — Run the linter
-
-```bash
-genvm-lint check contracts/evidence_bound.py
-```
-
-Copy the entire result back into the chat, including warnings.
-
-## Step 5 — Run the direct tests
-
-```bash
-pytest tests/direct -v
-```
-
-Copy the entire result back into the chat. Do not continue to deployment if any
-test fails.
-
-## Step 6 — Multi-validator testing
-
-After Steps 4 and 5 pass, we will use hosted GenLayer Studio first. This avoids
-making you install Docker before it is necessary. The next instructions will
-cover exactly what to click, what contract code to paste, and what test inputs
-to use.
-
-## Step 7 — Submission preparation
-
-Only after multi-validator tests pass will we:
-
-1. create or clean the public GitHub repository;
-2. add test evidence fixtures;
-3. record contract address and transaction links;
-4. write the BuilderValidatorCommunity submission;
+1. record the v0.2 contract address and transaction links;
+2. test verified and insufficient-evidence fixtures;
+3. add an adversarial prompt-injection fixture;
+4. write the BuilderValidatorCommunity submission; and
 5. perform a final claim-by-claim accuracy check.
 
-Do not submit the current package yet. It is a tested starter only after Steps
-4 and 5 succeed, and a contribution candidate only after Step 6 succeeds.
+Do not submit v0.1 or cite its address as a successful deployment.
