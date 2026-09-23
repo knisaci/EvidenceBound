@@ -50,13 +50,18 @@ derives all decision labels deterministically.
 
 The replacement contract deployment finalized successfully:
 
-- Contract: `0x7126602956E61E7aBF191C4d44f0DAd6ac248A09`
-- Deployment transaction: `0x570f5ffa76996828eb794a5813d6a63b51eb0e764a9804814c9bf9e6a291e71d`
-- Finalized: 2026-09-23 13:02:38
+- Contract: `0x4A387168c90C9C700D31FB3F3Fb6c3621Af59e60`
+- Deployment transaction: `0xaaf8b3969e31a24bff68ad3d000782f68c7fea8baae5b074fa6c6d2dca2e4ecb`
+- Deployment finalized: 2026-09-23 16:11:54
+- Claim submission transaction: `0x33002df7f390a785e705d2b8a4641ebc19f168232edd2dcbf2f110c28d48652b`
+- Resolution transaction: `0x6005cc5ca82999fad0f0a5b66088daaac633270d3d81d816387e542cf4f6966b`
+- Resolution finalized: 2026-09-23 19:17:08
+- Stored result: `PARTIALLY_VERIFIED`, `HIGH`,
+  `CLAIMED_RECORDS_MISMATCH`
+- Consensus facts: 20 total, 17 claimed, 3 locked, 0 other, 20 funding
+  records verified, and 0 funding mismatches.
 
 ## Still required before submission
 
-- multi-validator execution of v0.2 in hosted GenLayer Studio;
 - adversarial prompt-injection fixture;
-- stable consensus on verified, partially verified, and insufficient-evidence
-  cases.
+- additional Bradbury fixtures for verified and insufficient-evidence cases.
