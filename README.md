@@ -112,8 +112,15 @@ brittle equivalence rule. This address is retained as a test record only and
 must not be used as the contribution deployment.
 
 Version 0.2 fixes the failure by asking consensus only for a canonical fixed
-fact object. A new Bradbury address will be recorded after v0.2 is deployed and
-passes the same scenario.
+fact object.
+
+## Bradbury v0.2 deployment
+
+- Contract: `0x7126602956E61E7aBF191C4d44f0DAd6ac248A09`
+- Deployment transaction: `0x570f5ffa76996828eb794a5813d6a63b51eb0e764a9804814c9bf9e6a291e71d`
+- GenLayer chain transaction: `0x369d978e429c21d5b62a0c0eb2dea0a047d5855ce07f9c4f53a02ba37ad3824e`
+- Network: GenLayer Testnet Bradbury (Phase 1)
+- Finalized: 2026-09-23 13:02:38
 
 ## v0.2 Bradbury test vector
 
