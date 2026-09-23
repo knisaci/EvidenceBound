@@ -115,6 +115,18 @@ Version 0.2 fixes the failure by asking consensus only for a canonical fixed
 fact object. A new Bradbury address will be recorded after v0.2 is deployed and
 passes the same scenario.
 
+## v0.2 Bradbury test vector
+
+Use the fixture at immutable commit
+`e1db917dfae002b191d1f9ce9ce44b149cb02040`:
+
+- Evidence URL: `https://raw.githubusercontent.com/knisaci/EvidenceBound/e1db917dfae002b191d1f9ce9ce44b149cb02040/evidence/fixtures/evidencebound-partial-v1.json`
+- SHA-256: `6969d8fd6ac2a46f650fb5c04c24c8b44c8e241cc2df396f376e2506792b43a3`
+- Expected consensus facts: 20 total, 17 claimed, 3 locked, 0 other,
+  20 funding records verified, and 0 funding mismatches.
+- Expected deterministic result: `PARTIALLY_VERIFIED`, `HIGH`, with reason
+  `CLAIMED_RECORDS_MISMATCH`.
+
 ## Repository layout
 
 ```text
