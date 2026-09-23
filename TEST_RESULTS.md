@@ -46,6 +46,14 @@ confidence bucket and reason-code wording.
 Version 0.2 therefore limits consensus to a fixed seven-field fact object and
 derives all decision labels deterministically.
 
+## Bradbury v0.2 deployment
+
+The replacement contract deployment finalized successfully:
+
+- Contract: `0x7126602956E61E7aBF191C4d44f0DAd6ac248A09`
+- Deployment transaction: `0x570f5ffa76996828eb794a5813d6a63b51eb0e764a9804814c9bf9e6a291e71d`
+- Finalized: 2026-09-23 13:02:38
+
 ## Still required before submission
 
 - multi-validator execution of v0.2 in hosted GenLayer Studio;
