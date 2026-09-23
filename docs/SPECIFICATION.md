@@ -1,4 +1,4 @@
-# EvidenceBound v0.1 Specification
+# EvidenceBound v0.2 Specification
 
 ## Purpose
 
@@ -16,32 +16,31 @@ set into a consensus-governed, structured adjudication.
 ## Evaluation profile: RECORD_SET_CLAIM_V1
 
 This profile evaluates assertions about a bounded collection of records. Its
-material dimensions are:
+fixed extraction schema is:
 
-- record count;
-- record identity;
-- status distribution;
-- defined measurement period;
-- claimed versus observed values;
-- missing and contradictory records.
+- `total_records`;
+- `claimed_records`;
+- `locked_records`;
+- `other_records`;
+- `funding_records_verified`;
+- `funding_mismatches`; and
+- `source_sufficient`.
 
 ## Consensus invariant
 
-An adjudication is accepted only when the leader and validators independently
-agree on:
+The leader and validators independently fetch the declared evidence and extract
+the seven fields above. Each execution serializes the result as canonical JSON.
+GenLayer's `strict_eq` principle requires exact equality of that JSON.
 
-1. the exact verdict;
-2. the exact confidence bucket;
-3. the exact normalized reason-code set; and
-4. the exact canonical claim-critical facts.
-
-Explanatory prose and non-critical findings may differ.
+Only after consensus does deterministic code derive the verdict, confidence
+bucket, reason codes, contradiction details, and explanation. No validator is
+asked to independently invent those labels or prose.
 
 ## Stored state
 
 Each claim stores its submitter, subject, statement, profile, evidence URLs,
 manifest commitment, expected facts, period, adjudication fields, and resolution
-status. Version 0.1 permits only the transition `PENDING -> resolved verdict`.
+status. Version 0.2 permits only the transition `PENDING -> resolved verdict`.
 
 ## Threat model
 
@@ -60,21 +59,24 @@ immutable evidence.
 
 ### Malicious leader
 
-Validators independently rerun retrieval and evaluation, then compare material
-fields. A schema-valid but substantively false leader result is rejected.
+Validators independently rerun retrieval and extraction, then strictly compare
+the canonical fixed fact object. A materially different leader extraction is
+rejected.
 
 ### Consensus brittleness
 
-Exact comparison is intentionally limited to stable decision fields. If reason
-codes or critical-fact naming prove unstable in multi-validator tests, the
-normalization rules must be tightened rather than weakening validation.
+Version 0.1 incorrectly asked validators to agree on LLM-generated verdicts,
+confidence labels, reason codes, and critical-fact naming. A Bradbury appeal
+showed that semantically agreeing validators could vary those labels and leave
+the transaction undetermined. Version 0.2 removes those outputs from the LLM
+and derives them deterministically from the consensus facts.
 
 ### Oversized evidence
 
 The source count is capped at five. A byte-size limit should be introduced when
 the currently supported GenVM response-size behaviour has been measured.
 
-## Acceptance criteria for v0.1
+## Acceptance criteria for v0.2
 
 - Linter passes.
 - Direct-mode tests pass.
@@ -84,10 +86,10 @@ the currently supported GenVM response-size behaviour has been measured.
 - Validator disagreement prevents state mutation.
 - README explains why consensus is substantive.
 
-## Planned v0.2
+## Planned work
 
 - Content digest recomputation inside the contract.
 - Revision and supersession chains.
 - Registered evaluation profiles.
 - Evidence-source type policy.
-- More robust canonical fact vocabulary.
+- Additional fixed fact vocabularies for new profiles.
