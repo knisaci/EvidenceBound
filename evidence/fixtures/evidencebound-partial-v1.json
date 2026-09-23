@@ -10,6 +10,7 @@
     "total_records": 20,
     "claimed_records": 17,
     "locked_records": 3,
+    "other_records": 0,
     "funding_records_verified": 20,
     "funding_mismatches": 0
   },
@@ -34,9 +35,5 @@
     {"id": "deal-018", "status": "locked", "funding_verified": true},
     {"id": "deal-019", "status": "locked", "funding_verified": true},
     {"id": "deal-020", "status": "locked", "funding_verified": true}
-  ],
-  "expected_interpretation": {
-    "verdict": "PARTIALLY_VERIFIED",
-    "reason": "All 20 funding records are verified, but only 17 records have claimed status."
-  }
+  ]
 }
