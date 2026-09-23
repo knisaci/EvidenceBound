@@ -116,11 +116,16 @@ fact object.
 
 ## Bradbury v0.2 deployment
 
-- Contract: `0x7126602956E61E7aBF191C4d44f0DAd6ac248A09`
-- Deployment transaction: `0x570f5ffa76996828eb794a5813d6a63b51eb0e764a9804814c9bf9e6a291e71d`
-- GenLayer chain transaction: `0x369d978e429c21d5b62a0c0eb2dea0a047d5855ce07f9c4f53a02ba37ad3824e`
+- Contract: `0x4A387168c90C9C700D31FB3F3Fb6c3621Af59e60`
+- Deployment transaction: `0xaaf8b3969e31a24bff68ad3d000782f68c7fea8baae5b074fa6c6d2dca2e4ecb`
+- GenLayer chain transaction: `0x4841846bac35f87bba730c10f8f8de94952bdb9cf7b2fb75f6e4980237efd61d`
 - Network: GenLayer Testnet Bradbury (Phase 1)
-- Finalized: 2026-09-23 13:02:38
+- Deployment finalized: 2026-09-23 16:11:54
+- Claim submission transaction: `0x33002df7f390a785e705d2b8a4641ebc19f168232edd2dcbf2f110c28d48652b`
+- Resolution transaction: `0x6005cc5ca82999fad0f0a5b66088daaac633270d3d81d816387e542cf4f6966b`
+- Resolution finalized: 2026-09-23 19:17:08
+- Final verdict: `PARTIALLY_VERIFIED` (`HIGH` confidence)
+- Reason code: `CLAIMED_RECORDS_MISMATCH`
 
 ## v0.2 Bradbury test vector
 
@@ -146,6 +151,6 @@ evidence/fixtures/                Synthetic public consensus fixtures
 
 ## Status
 
-Version 0.2 passes local direct tests, the GenVM linter, and SDK semantic
-validation. Bradbury multi-validator testing is the remaining gate before
-contribution submission.
+Version 0.2 passes local direct tests, the GenVM linter, SDK semantic
+validation, and a finalized Bradbury multi-validator resolution. The on-chain
+facts and deterministic adjudication match the documented test vector.
