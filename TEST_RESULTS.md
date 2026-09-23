@@ -1,6 +1,6 @@
-# EvidenceBound v0.1 Test Record
+# EvidenceBound v0.2 Test Record
 
-Tested on 2026-09-21 with:
+Tested on 2026-09-23 with:
 
 - Python 3.12.14
 - `genlayer-py` 0.18.0
@@ -23,22 +23,32 @@ Covered behaviours:
 2. non-HTTPS evidence is rejected;
 3. a partial-verification result is stored correctly;
 4. a resolved claim cannot be resolved again; and
-5. a validator rejects a materially different verdict and reason-code set.
+5. `strict_eq` rejects a materially different extracted fact object.
 
 ## Linter
 
-The linter command was started, but its remote GenVM-version resolution did not
-complete in the available environment. This is not recorded as a pass or a
-contract failure. Re-run the following command in a normal network environment:
+Command:
 
 ```bash
 genvm-lint check contracts/evidence_bound.py
 ```
 
+Result: **lint passed (3 checks); SDK validation passed**.
+
+## Bradbury v0.1 failure that motivated v0.2
+
+The v0.1 resolution transaction
+`0x3d6e13e6aaf8e59f9be86ab0def6b217b4737b77999dddde28ba2fb537a01842`
+ended `undetermined` after an appeal overturned the accepted result. Different
+rounds agreed on `PARTIALLY_VERIFIED` and on the material counts, but varied the
+confidence bucket and reason-code wording.
+
+Version 0.2 therefore limits consensus to a fixed seven-field fact object and
+derives all decision labels deterministically.
+
 ## Still required before submission
 
-- successful linter completion;
-- multi-validator execution in hosted or local GenLayer Studio;
+- multi-validator execution of v0.2 in hosted GenLayer Studio;
 - adversarial prompt-injection fixture;
 - stable consensus on verified, partially verified, and insufficient-evidence
   cases.
