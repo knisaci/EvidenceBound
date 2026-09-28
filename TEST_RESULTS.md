@@ -76,5 +76,7 @@ The v0.3 Bradbury deployment finalized successfully:
 - Deployment transaction: `0x7b3f1f3f3305c0a39cc3ffded38a54fc7c74b6c858abedaa51446616898358a7`
 - GenLayer chain transaction: `0xbeaa86d4d0cac78469fb089a64698f423c3c924c7582adc5e168c2de4adac134`
 - Deployment finalized: 2026-09-28 16:12:07
+- Claim submission transaction: `0x7599798ad9e50f2e9209ab98602e622ae8ff65516893f534bb87ba84d8074c71`
+- Claim submission accepted: 2026-09-28 17:16:48
 
 A multi-validator claim resolution is the remaining on-chain test.
