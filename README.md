@@ -156,6 +156,14 @@ Its API allowed an arbitrary statement and a subset of expected facts. Version
 
 ## v0.3 Bradbury test vector
 
+### Current v0.3 deployment
+
+- Contract: `0x490817c879b019a5099F937EaF5672bCA887DfA3`
+- Deployment transaction: `0x7b3f1f3f3305c0a39cc3ffded38a54fc7c74b6c858abedaa51446616898358a7`
+- GenLayer chain transaction: `0xbeaa86d4d0cac78469fb089a64698f423c3c924c7582adc5e168c2de4adac134`
+- Network: GenLayer Testnet Bradbury (Phase 1)
+- Deployment finalized: 2026-09-28 16:12:07
+
 Use the fixture at immutable commit
 `e1db917dfae002b191d1f9ce9ce44b149cb02040`:
 
