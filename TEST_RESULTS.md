@@ -79,4 +79,15 @@ The v0.3 Bradbury deployment finalized successfully:
 - Claim submission transaction: `0x7599798ad9e50f2e9209ab98602e622ae8ff65516893f534bb87ba84d8074c71`
 - Claim submission accepted: 2026-09-28 17:16:48
 
-A multi-validator claim resolution is the remaining on-chain test.
+The multi-validator claim resolution was accepted:
+
+- Resolution transaction: `0x42779183162d31586d24eea48658295023524797a9f6045a262686d85a084e38`
+- Resolution accepted: 2026-09-28 17:29:59
+- Stored verdict: `PARTIALLY_VERIFIED`, `HIGH`
+- Reason codes: `CLAIMED_RECORDS_MISMATCH`, `LOCKED_RECORDS_MISMATCH`
+- Consensus facts: 20 total, 17 claimed, 3 locked, 0 other, 20 funding
+  records verified, 0 funding mismatches, source sufficient.
+- Complete comparison: four of six canonical claim facts matched and two
+  differed.
+
+Finalization of this resolution transaction is pending.
