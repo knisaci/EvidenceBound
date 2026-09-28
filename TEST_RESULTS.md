@@ -83,6 +83,7 @@ The multi-validator claim resolution was accepted:
 
 - Resolution transaction: `0x42779183162d31586d24eea48658295023524797a9f6045a262686d85a084e38`
 - Resolution accepted: 2026-09-28 17:29:59
+- Resolution finalized: 2026-09-28 17:59:59
 - Stored verdict: `PARTIALLY_VERIFIED`, `HIGH`
 - Reason codes: `CLAIMED_RECORDS_MISMATCH`, `LOCKED_RECORDS_MISMATCH`
 - Consensus facts: 20 total, 17 claimed, 3 locked, 0 other, 20 funding
@@ -90,4 +91,6 @@ The multi-validator claim resolution was accepted:
 - Complete comparison: four of six canonical claim facts matched and two
   differed.
 
-Finalization of this resolution transaction is pending.
+The resolution transaction finalized successfully after the accepted consensus
+decision. A post-resolution `get_claim("claim-1")` confirmed the complete stored
+adjudication.
