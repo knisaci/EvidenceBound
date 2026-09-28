@@ -7,11 +7,19 @@ CONTRACT = "contracts/evidence_bound.py"
 def submit_example(contract):
     return contract.submit_claim(
         "Kirago funding-record audit",
-        "Twenty claimed deals were checked and all funding records were verified.",
         "RECORD_SET_CLAIM_V1",
         json.dumps(["https://evidence.example/audit.json"]),
         "sha256:1234567890abcdef",
-        json.dumps({"claimed_records": 20, "funding_records_verified": 20}),
+        json.dumps(
+            {
+                "total_records": 20,
+                "claimed_records": 20,
+                "locked_records": 0,
+                "other_records": 0,
+                "funding_records_verified": 20,
+                "funding_mismatches": 0,
+            }
+        ),
         1,
         2,
     )
@@ -25,6 +33,12 @@ def test_submit_claim_sets_pending_state(direct_vm, direct_deploy, direct_alice)
     assert claim_id == "claim-1"
     assert claim["verdict"] == "PENDING"
     assert claim["resolved"] is False
+    assert claim["claim_facts"]["locked_records"] == 0
+    assert claim["statement"] == (
+        "For the declared period, the evidence set contains 20 total records: "
+        "20 claimed, 0 locked, and 0 other; 20 funding records are verified and "
+        "0 funding mismatches exist."
+    )
     assert contract.get_claim_count() == 1
 
 
@@ -34,11 +48,48 @@ def test_rejects_non_https_evidence(direct_vm, direct_deploy, direct_alice):
     with direct_vm.expect_revert("all evidence URLs must use HTTPS"):
         contract.submit_claim(
             "Invalid source",
-            "This statement is intentionally long enough to pass validation.",
             "RECORD_SET_CLAIM_V1",
             json.dumps(["http://insecure.example/data"]),
             "sha256:1234567890abcdef",
-            json.dumps({"count": 1}),
+            json.dumps({}),
+            1,
+            2,
+        )
+
+
+def test_rejects_incomplete_claim_facts(direct_vm, direct_deploy, direct_alice):
+    contract = direct_deploy(CONTRACT)
+    direct_vm.sender = direct_alice
+    with direct_vm.expect_revert("claim_facts_json must contain exactly all six claim facts"):
+        contract.submit_claim(
+            "Incomplete claim",
+            "RECORD_SET_CLAIM_V1",
+            json.dumps(["https://evidence.example/audit.json"]),
+            "sha256:1234567890abcdef",
+            json.dumps({"total_records": 20}),
+            1,
+            2,
+        )
+
+
+def test_rejects_inconsistent_claim_facts(direct_vm, direct_deploy, direct_alice):
+    contract = direct_deploy(CONTRACT)
+    direct_vm.sender = direct_alice
+    facts = {
+        "total_records": 20,
+        "claimed_records": 19,
+        "locked_records": 0,
+        "other_records": 0,
+        "funding_records_verified": 20,
+        "funding_mismatches": 0,
+    }
+    with direct_vm.expect_revert("record status counts must sum to total_records"):
+        contract.submit_claim(
+            "Inconsistent claim",
+            "RECORD_SET_CLAIM_V1",
+            json.dumps(["https://evidence.example/audit.json"]),
+            "sha256:1234567890abcdef",
+            json.dumps(facts),
             1,
             2,
         )
@@ -77,7 +128,10 @@ def test_resolve_partial_verdict(direct_vm, direct_deploy, direct_alice):
     stored = contract.get_claim(claim_id)
     assert stored["resolved"] is True
     assert stored["confidence_bucket"] == "HIGH"
-    assert stored["reason_codes"] == ["CLAIMED_RECORDS_MISMATCH"]
+    assert stored["reason_codes"] == [
+        "CLAIMED_RECORDS_MISMATCH",
+        "LOCKED_RECORDS_MISMATCH",
+    ]
     assert stored["established_facts"]["locked_records"] == 3
 
 
