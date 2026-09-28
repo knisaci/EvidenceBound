@@ -167,6 +167,7 @@ Its API allowed an arbitrary statement and a subset of expected facts. Version
 - Claim submission accepted: 2026-09-28 17:16:48
 - Resolution transaction: `0x42779183162d31586d24eea48658295023524797a9f6045a262686d85a084e38`
 - Resolution accepted: 2026-09-28 17:29:59
+- Resolution finalized: 2026-09-28 17:59:59
 - Stored verdict: `PARTIALLY_VERIFIED` (`HIGH` confidence)
 - Reason codes: `CLAIMED_RECORDS_MISMATCH`, `LOCKED_RECORDS_MISMATCH`
 - Comparison: all six canonical claim facts evaluated; four matched and two
@@ -197,6 +198,5 @@ evidence/fixtures/                Synthetic public consensus fixtures
 ## Status
 
 Version 0.3 passes seven direct tests, including explicit rejection of incomplete
-and internally inconsistent claims. Its Bradbury deployment is finalized and a
-six-field claim resolution has been accepted; resolution finalization is
-pending.
+and internally inconsistent claims. Its Bradbury deployment and six-field claim
+resolution are finalized.
