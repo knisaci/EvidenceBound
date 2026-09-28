@@ -3,7 +3,7 @@
 EvidenceBound is a standalone GenLayer Intelligent Contract for adjudicating a
 precisely scoped claim against declared public evidence.
 
-It is not a general-purpose fact checker. Version 0.2 deliberately supports one
+It is not a general-purpose fact checker. Version 0.3 deliberately supports one
 bounded evaluation profile: `RECORD_SET_CLAIM_V1`, for claims about operational
 record sets such as audits, service reports, grant outputs, or agent work logs.
 
@@ -25,15 +25,16 @@ leader's JSON format.
 
 ## Contract lifecycle
 
-1. A builder calls `submit_claim(...)` with a statement, evidence URLs,
-   expected facts, time period, and evidence-manifest digest.
-2. The contract stores the claim as `PENDING`.
-3. Anyone may call `resolve_claim(claim_id)`.
-4. The leader retrieves the evidence and extracts the fixed fact schema.
-5. Validators independently retrieve the evidence and extract the same schema.
+1. A builder calls `submit_claim(...)` with evidence URLs, all six canonical
+   claim facts, a time period, and an evidence-manifest digest.
+2. The contract rejects missing, extra, negative, or internally inconsistent
+   claim facts and generates the human-readable statement from those facts.
+3. The contract stores the claim as `PENDING`.
+4. Anyone may call `resolve_claim(claim_id)`.
+5. The leader and validators independently extract the fixed fact schema.
 6. `strict_eq` requires exact equality of the canonical extracted facts.
-7. Deterministic code compares those facts with the submitted expected facts.
-8. The accepted adjudication is immutable in v0.2.
+7. Deterministic code compares every extracted fact with every claim fact.
+8. The accepted adjudication is immutable in v0.3.
 
 ## Verdicts
 
@@ -77,7 +78,29 @@ Do not submit the contribution until the contract has reached consensus on at
 least one supported, one partially supported, and one insufficient-evidence
 fixture.
 
-## Important v0.2 limits
+## Claim-binding invariant (v0.3)
+
+Callers cannot submit prose or a partial set of favorable facts. The exact
+required claim schema is:
+
+```json
+{
+  "total_records": 20,
+  "claimed_records": 20,
+  "locked_records": 0,
+  "other_records": 0,
+  "funding_records_verified": 20,
+  "funding_mismatches": 0
+}
+```
+
+The contract requires exactly these six keys. It also requires status counts to
+sum to `total_records` and funding outcomes to sum to `total_records`. It then
+generates the displayed statement from this complete object. Consequently,
+there is no unevaluated caller-supplied wording and no subset can produce
+`VERIFIED`.
+
+## Important v0.3 limits
 
 - Maximum five HTTPS evidence sources.
 - Only `RECORD_SET_CLAIM_V1` is accepted.
@@ -91,9 +114,9 @@ fixture.
 
 A claim states that twenty deals were all `claimed`. The evidence shows twenty
 verified funding records but includes both `claimed` and `locked` states. A
-responsible result is `PARTIALLY_VERIFIED` with reason code
-`CLAIMED_RECORDS_MISMATCH`: the funding count is supported, but the claimed
-record count is not.
+responsible result is `PARTIALLY_VERIFIED` with reason codes
+`CLAIMED_RECORDS_MISMATCH` and `LOCKED_RECORDS_MISMATCH`: the funding counts
+are supported, but the status distribution is not.
 
 The repository includes this scenario as an explicitly synthetic fixture at
 `evidence/fixtures/evidencebound-partial-v1.json`.
@@ -111,10 +134,14 @@ confidence labels and reason-code wording. That exposed an overly broad and
 brittle equivalence rule. This address is retained as a test record only and
 must not be used as the contribution deployment.
 
-Version 0.2 fixes the failure by asking consensus only for a canonical fixed
+Version 0.2 fixed the failure by asking consensus only for a canonical fixed
 fact object.
 
 ## Bradbury v0.2 deployment
+
+This deployment is historical and must not be cited as the current submission.
+Its API allowed an arbitrary statement and a subset of expected facts. Version
+0.3 closes that claim-binding gap and requires a new deployment.
 
 - Contract: `0x4A387168c90C9C700D31FB3F3Fb6c3621Af59e60`
 - Deployment transaction: `0xaaf8b3969e31a24bff68ad3d000782f68c7fea8baae5b074fa6c6d2dca2e4ecb`
@@ -127,7 +154,7 @@ fact object.
 - Final verdict: `PARTIALLY_VERIFIED` (`HIGH` confidence)
 - Reason code: `CLAIMED_RECORDS_MISMATCH`
 
-## v0.2 Bradbury test vector
+## v0.3 Bradbury test vector
 
 Use the fixture at immutable commit
 `e1db917dfae002b191d1f9ce9ce44b149cb02040`:
@@ -136,8 +163,10 @@ Use the fixture at immutable commit
 - SHA-256: `6969d8fd6ac2a46f650fb5c04c24c8b44c8e241cc2df396f376e2506792b43a3`
 - Expected consensus facts: 20 total, 17 claimed, 3 locked, 0 other,
   20 funding records verified, and 0 funding mismatches.
-- Expected deterministic result: `PARTIALLY_VERIFIED`, `HIGH`, with reason
-  `CLAIMED_RECORDS_MISMATCH`.
+- Submitted claim facts: 20 total, 20 claimed, 0 locked, 0 other, 20 funding
+  records verified, and 0 funding mismatches.
+- Expected deterministic result: `PARTIALLY_VERIFIED`, `HIGH`, with reasons
+  `CLAIMED_RECORDS_MISMATCH` and `LOCKED_RECORDS_MISMATCH`.
 
 ## Repository layout
 
@@ -151,6 +180,5 @@ evidence/fixtures/                Synthetic public consensus fixtures
 
 ## Status
 
-Version 0.2 passes local direct tests, the GenVM linter, SDK semantic
-validation, and a finalized Bradbury multi-validator resolution. The on-chain
-facts and deterministic adjudication match the documented test vector.
+Version 0.3 passes seven direct tests, including explicit rejection of incomplete
+and internally inconsistent claims. A fresh Bradbury deployment is pending.
