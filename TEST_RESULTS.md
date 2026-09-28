@@ -70,6 +70,11 @@ The replacement contract deployment finalized successfully:
 
 ## v0.3 deployment status
 
-A fresh Bradbury deployment and multi-validator resolution are required. The
-new Explorer address must be added only after its source is confirmed to match
-the v0.3 repository contract.
+The v0.3 Bradbury deployment finalized successfully:
+
+- Contract: `0x490817c879b019a5099F937EaF5672bCA887DfA3`
+- Deployment transaction: `0x7b3f1f3f3305c0a39cc3ffded38a54fc7c74b6c858abedaa51446616898358a7`
+- GenLayer chain transaction: `0xbeaa86d4d0cac78469fb089a64698f423c3c924c7582adc5e168c2de4adac134`
+- Deployment finalized: 2026-09-28 16:12:07
+
+A multi-validator claim resolution is the remaining on-chain test.
