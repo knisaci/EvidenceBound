@@ -1,6 +1,6 @@
 # { "Depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6" }
 
-"""EvidenceBound v0.2 — bounded record claims with fact-only consensus."""
+"""EvidenceBound v0.3 — canonical structured claims with fact consensus."""
 
 import json
 from dataclasses import dataclass
@@ -32,7 +32,7 @@ class Claim:
     evaluation_profile: str
     evidence_urls_json: str
     manifest_digest: str
-    expected_facts_json: str
+    claim_facts_json: str
     period_start: u256
     period_end: u256
     verdict: str
@@ -55,15 +55,12 @@ class EvidenceBound(gl.Contract):
 
     def _validate(
         self,
-        statement: str,
         profile: str,
         urls_json: str,
-        expected_json: str,
+        claim_facts_json: str,
         start: u256,
         end: u256,
     ) -> None:
-        if len(statement.strip()) < 20 or len(statement) > 1000:
-            raise gl.vm.UserError("statement must contain 20 to 1000 characters")
         if profile != PROFILE:
             raise gl.vm.UserError("unsupported evaluation profile")
         try:
@@ -77,16 +74,25 @@ class EvidenceBound(gl.Contract):
         if not all(x.startswith("https://") for x in urls):
             raise gl.vm.UserError("all evidence URLs must use HTTPS")
         try:
-            expected = json.loads(expected_json)
+            claimed = json.loads(claim_facts_json)
         except Exception:
-            raise gl.vm.UserError("expected_facts_json must be valid JSON")
-        if not isinstance(expected, dict) or len(expected) == 0:
-            raise gl.vm.UserError("expected_facts_json must be a non-empty JSON object")
-        for key, value in expected.items():
-            if key not in FACT_KEYS:
-                raise gl.vm.UserError("expected_facts_json contains an unsupported fact")
+            raise gl.vm.UserError("claim_facts_json must be valid JSON")
+        if not isinstance(claimed, dict) or sorted(claimed.keys()) != sorted(FACT_KEYS):
+            raise gl.vm.UserError("claim_facts_json must contain exactly all six claim facts")
+        for value in claimed.values():
             if not isinstance(value, int) or isinstance(value, bool) or value < 0:
-                raise gl.vm.UserError("expected facts must be non-negative integers")
+                raise gl.vm.UserError("claim facts must be non-negative integers")
+        if claimed["total_records"] != (
+            claimed["claimed_records"]
+            + claimed["locked_records"]
+            + claimed["other_records"]
+        ):
+            raise gl.vm.UserError("record status counts must sum to total_records")
+        funding_results = (
+            claimed["funding_records_verified"] + claimed["funding_mismatches"]
+        )
+        if funding_results != claimed["total_records"]:
+            raise gl.vm.UserError("funding result counts must sum to total_records")
         if int(start) > int(end):
             raise gl.vm.UserError("period_start cannot be later than period_end")
 
@@ -94,19 +100,17 @@ class EvidenceBound(gl.Contract):
     def submit_claim(
         self,
         subject: str,
-        statement: str,
         evaluation_profile: str,
         evidence_urls_json: str,
         manifest_digest: str,
-        expected_facts_json: str,
+        claim_facts_json: str,
         period_start: u256,
         period_end: u256,
     ) -> str:
         self._validate(
-            statement,
             evaluation_profile,
             evidence_urls_json,
-            expected_facts_json,
+            claim_facts_json,
             period_start,
             period_end,
         )
@@ -116,16 +120,32 @@ class EvidenceBound(gl.Contract):
             raise gl.vm.UserError("manifest_digest must contain 16 to 128 characters")
         number = int(self.claim_count) + 1
         claim_id = "claim-" + str(number)
+        claimed = json.loads(claim_facts_json)
+        statement = (
+            "For the declared period, the evidence set contains "
+            + str(claimed["total_records"])
+            + " total records: "
+            + str(claimed["claimed_records"])
+            + " claimed, "
+            + str(claimed["locked_records"])
+            + " locked, and "
+            + str(claimed["other_records"])
+            + " other; "
+            + str(claimed["funding_records_verified"])
+            + " funding records are verified and "
+            + str(claimed["funding_mismatches"])
+            + " funding mismatches exist."
+        )
         self.claim_count = u256(number)
         self.claims[claim_id] = Claim(
             claim_id,
             gl.message.sender_address,
             subject.strip(),
-            statement.strip(),
+            statement,
             evaluation_profile,
             json.dumps(json.loads(evidence_urls_json)),
             manifest_digest.strip(),
-            json.dumps(json.loads(expected_facts_json), sort_keys=True),
+            json.dumps(claimed, sort_keys=True),
             period_start,
             period_end,
             PENDING,
@@ -178,7 +198,7 @@ established. Do not return a verdict, prose, or reason codes.
 
         return json.loads(gl.eq_principle.strict_eq(canonical_facts))
 
-    def _derive(self, expected_json: str, facts: dict) -> dict:
+    def _derive(self, claim_facts_json: str, facts: dict) -> dict:
         if not facts["source_sufficient"]:
             return {
                 "verdict": INSUFFICIENT,
@@ -187,26 +207,23 @@ established. Do not return a verdict, prose, or reason codes.
                 "details": ["The evidence cannot establish the required counts."],
                 "explanation": "The evidence lacks enough usable record data.",
             }
-        expected = json.loads(expected_json)
-        compared = 0
+        claimed = json.loads(claim_facts_json)
         matched = 0
         reasons = []
         details = []
         for key in FACT_KEYS:
-            if key in expected:
-                compared += 1
-                if int(expected[key]) == int(facts[key]):
-                    matched += 1
-                else:
-                    reasons.append(key.upper() + "_MISMATCH")
-                    details.append(
-                        key
-                        + " expected "
-                        + str(int(expected[key]))
-                        + " but evidence established "
-                        + str(int(facts[key]))
-                    )
-        if matched == compared:
+            if int(claimed[key]) == int(facts[key]):
+                matched += 1
+            else:
+                reasons.append(key.upper() + "_MISMATCH")
+                details.append(
+                    key
+                    + " claimed as "
+                    + str(int(claimed[key]))
+                    + " but evidence established "
+                    + str(int(facts[key]))
+                )
+        if matched == len(FACT_KEYS):
             verdict = VERIFIED
             reasons = ["ALL_EXPECTED_FACTS_MATCH"]
         elif matched > 0:
@@ -218,6 +235,9 @@ established. Do not return a verdict, prose, or reason codes.
             + int(facts["locked_records"])
             + int(facts["other_records"])
         )
+        consistent = consistent and int(facts["funding_records_verified"]) + int(
+            facts["funding_mismatches"]
+        ) == int(facts["total_records"])
         return {
             "verdict": verdict,
             "confidence": "HIGH" if consistent else "MEDIUM",
@@ -225,11 +245,11 @@ established. Do not return a verdict, prose, or reason codes.
             "details": details,
             "explanation": (
                 "Compared "
-                + str(compared)
-                + " expected facts: "
+                + str(len(FACT_KEYS))
+                + " canonical claim facts: "
                 + str(matched)
                 + " matched and "
-                + str(compared - matched)
+                + str(len(FACT_KEYS) - matched)
                 + " differed."
             ),
         }
@@ -246,7 +266,7 @@ established. Do not return a verdict, prose, or reason codes.
             claim.period_start,
             claim.period_end,
         )
-        result = self._derive(claim.expected_facts_json, facts)
+        result = self._derive(claim.claim_facts_json, facts)
         claim.verdict = result["verdict"]
         claim.confidence_bucket = result["confidence"]
         claim.reason_codes_json = json.dumps(result["reasons"])
@@ -270,7 +290,7 @@ established. Do not return a verdict, prose, or reason codes.
             "evaluation_profile": c.evaluation_profile,
             "evidence_urls": json.loads(c.evidence_urls_json),
             "manifest_digest": c.manifest_digest,
-            "expected_facts": json.loads(c.expected_facts_json),
+            "claim_facts": json.loads(c.claim_facts_json),
             "period_start": int(c.period_start),
             "period_end": int(c.period_end),
             "verdict": c.verdict,
