@@ -163,6 +163,8 @@ Its API allowed an arbitrary statement and a subset of expected facts. Version
 - GenLayer chain transaction: `0xbeaa86d4d0cac78469fb089a64698f423c3c924c7582adc5e168c2de4adac134`
 - Network: GenLayer Testnet Bradbury (Phase 1)
 - Deployment finalized: 2026-09-28 16:12:07
+- Claim submission transaction: `0x7599798ad9e50f2e9209ab98602e622ae8ff65516893f534bb87ba84d8074c71`
+- Claim submission accepted: 2026-09-28 17:16:48
 
 Use the fixture at immutable commit
 `e1db917dfae002b191d1f9ce9ce44b149cb02040`:
