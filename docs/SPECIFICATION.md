@@ -1,4 +1,4 @@
-# EvidenceBound v0.2 Specification
+# EvidenceBound v0.3 Specification
 
 ## Purpose
 
@@ -26,6 +26,17 @@ fixed extraction schema is:
 - `funding_mismatches`; and
 - `source_sufficient`.
 
+## Claim-binding invariant
+
+The submitted claim is a complete structured object with exactly six integer
+fields: all fields above except `source_sufficient`. Missing fields, extra
+fields, negative values, booleans, and internally inconsistent totals revert.
+
+The caller does not submit free-form claim wording. The contract generates a
+canonical statement from the complete structured claim and compares all six
+fields during resolution. A matching subset can therefore never yield
+`VERIFIED`.
+
 ## Consensus invariant
 
 The leader and validators independently fetch the declared evidence and extract
@@ -38,9 +49,10 @@ asked to independently invent those labels or prose.
 
 ## Stored state
 
-Each claim stores its submitter, subject, statement, profile, evidence URLs,
-manifest commitment, expected facts, period, adjudication fields, and resolution
-status. Version 0.2 permits only the transition `PENDING -> resolved verdict`.
+Each claim stores its submitter, subject, generated statement, profile, evidence
+URLs, manifest commitment, complete claim facts, period, adjudication fields,
+and resolution status. Version 0.3 permits only the transition
+`PENDING -> resolved verdict`.
 
 ## Threat model
 
@@ -69,14 +81,16 @@ Version 0.1 incorrectly asked validators to agree on LLM-generated verdicts,
 confidence labels, reason codes, and critical-fact naming. A Bradbury appeal
 showed that semantically agreeing validators could vary those labels and leave
 the transaction undetermined. Version 0.2 removes those outputs from the LLM
-and derives them deterministically from the consensus facts.
+and derives them deterministically from the consensus facts. Version 0.3 also
+binds the verdict to a complete canonical claim after review identified that
+v0.2 allowed arbitrary prose and fact subsets.
 
 ### Oversized evidence
 
 The source count is capped at five. A byte-size limit should be introduced when
 the currently supported GenVM response-size behaviour has been measured.
 
-## Acceptance criteria for v0.2
+## Acceptance criteria for v0.3
 
 - Linter passes.
 - Direct-mode tests pass.
@@ -84,6 +98,8 @@ the currently supported GenVM response-size behaviour has been measured.
 - A malicious prompt embedded in evidence does not change the output schema or
   cause the evaluator to follow evidence instructions.
 - Validator disagreement prevents state mutation.
+- Incomplete or inconsistent structured claims revert.
+- The displayed statement is generated only from the canonical claim facts.
 - README explains why consensus is substantive.
 
 ## Planned work
