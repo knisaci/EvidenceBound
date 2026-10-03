@@ -25,6 +25,90 @@ export default function TransactionPanel() {
   const [receipt, setReceipt] = useState('')
   const [error, setError] = useState('')
 
+
+  const [subject, setSubject] = useState('Synthetic funding-record audit — website test')
+  const [urlsText, setUrlsText] = useState(
+    'https://raw.githubusercontent.com/knisaci/EvidenceBound/e1db917dfae002b191d1f9ce9ce44b149cb02040/evidence/fixtures/evidencebound-partial-v1.json'
+  )
+  const [digest, setDigest] = useState(
+    'sha256:6969d8fd6ac2a46f650fb5c04c24c8b44c8e241cc2df396f376e2506792b43a3'
+  )
+  const [startDate, setStartDate] = useState('2026-08-01')
+  const [endDate, setEndDate] = useState('2026-08-31')
+  const [counts, setCounts] = useState({
+    total_records: '20',
+    claimed_records: '20',
+    locked_records: '0',
+    other_records: '0',
+    funding_records_verified: '20',
+    funding_mismatches: '0',
+  })
+
+  const fields = [
+    ['total_records', 'Total records'],
+    ['claimed_records', 'Claimed records'],
+    ['locked_records', 'Locked records'],
+    ['other_records', 'Other records'],
+    ['funding_records_verified', 'Verified funding records'],
+    ['funding_mismatches', 'Funding mismatches'],
+  ] as const
+
+  function validateClaim() {
+    if (!subject.trim() || subject.trim().length > 200) {
+      throw new Error('Subject must contain 1 to 200 characters.')
+    }
+
+    const urls = urlsText.split(/\\r?\\n/).map(url => url.trim()).filter(Boolean)
+    if (urls.length < 1 || urls.length > 5) {
+      throw new Error('Provide between 1 and 5 public HTTPS evidence URLs.')
+    }
+    for (const url of urls) {
+      try {
+        const parsed = new URL(url)
+        if (parsed.protocol !== 'https:') throw new Error()
+      } catch {
+        throw new Error('Every evidence URL must be a valid HTTPS URL.')
+      }
+    }
+
+    if (digest.trim().length < 16 || digest.trim().length > 128) {
+      throw new Error('Manifest digest must contain 16 to 128 characters.')
+    }
+
+    const facts = Object.fromEntries(
+      fields.map(([key]) => {
+        const raw = counts[key].trim()
+        const value = Number(raw)
+        if (raw === '' || !Number.isSafeInteger(value) || value < 0) {
+          throw new Error(`${key.replaceAll('_', ' ')} must be a non-negative whole number. Received: ${JSON.stringify(raw)}`)
+        }
+        return [key, value]
+      })
+    ) as Record<keyof typeof counts, number>
+
+    if (
+      BigInt(facts.claimed_records) + BigInt(facts.locked_records) +
+      BigInt(facts.other_records) !== BigInt(facts.total_records)
+    ) {
+      throw new Error('Claimed + locked + other must equal total records.')
+    }
+
+    if (
+      BigInt(facts.funding_records_verified) + BigInt(facts.funding_mismatches) !==
+      BigInt(facts.total_records)
+    ) {
+      throw new Error('Verified funding records + funding mismatches must equal total records.')
+    }
+
+    const start = Date.parse(startDate + 'T00:00:00Z') / 1000
+    const end = Date.parse(endDate + 'T23:59:59Z') / 1000
+    if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || start > end) {
+      throw new Error('Choose valid reporting dates, with start on or before end.')
+    }
+
+    return { urls, facts, start: BigInt(start), end: BigInt(end) }
+  }
+
   async function track(transactionHash: Parameters<typeof readClient.waitForTransactionReceipt>[0]['hash']) {
     setStatus('Submitted. Waiting for validator acceptance…')
     const accepted = await readClient.waitForTransactionReceipt({
@@ -42,7 +126,7 @@ export default function TransactionPanel() {
     })
     setReceipt(pretty(finalized))
 
-    if (finalized.txExecutionResultName === 'FINISHED_WITH_RETURN') {
+    if (finalized.txExecutionResultName === 'FINISHED_WITH_RETURN' && finalized.resultName === 'AGREE') {
       setStatus('Finalized successfully. Inspect the receipt for the new claim ID.')
     } else {
       setStatus('Finalization reached. Execution did not report success; inspect the receipt.')
@@ -53,8 +137,8 @@ export default function TransactionPanel() {
     setBusy(true)
     setError('')
     setReceipt('')
-    setHash('')
     try {
+      const validated = validateClaim()
       const provider = getWalletProvider()
       const accounts = await provider.request({ method: 'eth_accounts' })
       if (!accounts[0]) throw new Error('Reconnect your wallet.')
@@ -75,22 +159,13 @@ export default function TransactionPanel() {
         address: ADDRESS,
         functionName: 'submit_claim',
         args: [
-          'Synthetic funding-record audit — website test',
+          subject.trim(),
           'RECORD_SET_CLAIM_V1',
-          JSON.stringify([
-            'https://raw.githubusercontent.com/knisaci/EvidenceBound/e1db917dfae002b191d1f9ce9ce44b149cb02040/evidence/fixtures/evidencebound-partial-v1.json',
-          ]),
-          'sha256:6969d8fd6ac2a46f650fb5c04c24c8b44c8e241cc2df396f376e2506792b43a3',
-          JSON.stringify({
-            total_records: 20,
-            claimed_records: 20,
-            locked_records: 0,
-            other_records: 0,
-            funding_records_verified: 20,
-            funding_mismatches: 0,
-          }),
-          1785542400n,
-          1788220799n,
+          JSON.stringify(validated.urls),
+          digest.trim(),
+          JSON.stringify(validated.facts),
+          validated.start,
+          validated.end,
         ],
         value: 0n,
       })
@@ -123,18 +198,59 @@ export default function TransactionPanel() {
 
   return (
     <section>
-      <h2>Submit a demonstration claim</h2>
+      <h2>Submit an evidence claim</h2>
       <p>
-        Synthetic evidence: 20 records, with 17 claimed and 3 locked.
-        This test claims all 20 were claimed.
+        Enter a complete claim about a bounded record set.
+        The prefilled example uses explicitly synthetic evidence.
       </p>
+
+      <fieldset disabled={busy}>
+        <label htmlFor="subject">Subject</label>
+        <input id="subject" value={subject} maxLength={200}
+          onChange={event => setSubject(event.target.value)} />
+
+        <label htmlFor="evidence-urls">Public evidence URLs — one per line, maximum five</label>
+        <textarea id="evidence-urls" rows={4} value={urlsText}
+          onChange={event => setUrlsText(event.target.value)} />
+
+        <label htmlFor="manifest-digest">Evidence manifest digest</label>
+        <input id="manifest-digest" value={digest}
+          onChange={event => setDigest(event.target.value)} />
+        <p className="footnote">
+          The contract stores this digest as a declaration.
+          Version 0.3 does not verify it against fetched evidence.
+        </p>
+
+        <div className="form-grid">
+          <div>
+            <label htmlFor="period-start">Reporting period start — UTC</label>
+            <input id="period-start" type="date" value={startDate}
+              onChange={event => setStartDate(event.target.value)} />
+          </div>
+          <div>
+            <label htmlFor="period-end">Reporting period end — UTC</label>
+            <input id="period-end" type="date" value={endDate}
+              onChange={event => setEndDate(event.target.value)} />
+          </div>
+          {fields.map(([key, label]) => (
+            <div key={key}>
+              <label htmlFor={key}>{label}</label>
+              <input id={key} type="number" min="0" step="1" value={counts[key]}
+                onChange={event => setCounts(previous => ({
+                  ...previous, [key]: event.target.value,
+                }))} />
+            </div>
+          ))}
+        </div>
+      </fieldset>
+
       <p>
         Submission creates a pending claim. Resolution is a separate transaction.
         Attached value: 0 GEN; the wallet may show a network fee.
       </p>
       <div className="controls">
         <button disabled={busy} onClick={submitDemo}>
-          Submit synthetic claim
+          Submit claim
         </button>
         {hash && (
           <button disabled={busy} onClick={resume}>
