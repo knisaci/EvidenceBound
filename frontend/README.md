@@ -60,9 +60,31 @@ https://explorer-bradbury.genlayer.com/tx/0x0cf4dcf5c1d9d3b0dcf6c9fb56736822470b
 Finalized website resolution, claim-2:
 https://explorer-bradbury.genlayer.com/tx/0xe39b3737ed48789a88cd5c1831b009b1fa3487da91583a178c85f85855a39b83
 
-These writes were tested through the local frontend.
-Public-site contract reads and Rabby connection were separately verified.
-A further submission returned claim-3; its return-data discovery was verified.
+The claim-2 writes were tested through the local frontend. Public-site reads
+and Rabby connection were also verified. A further submission returned claim-3;
+its return-data discovery was verified.
+
+## Finalized public-site workflow — claim-4
+
+Both submission and resolution were performed through the hosted website.
+
+Submission:
+https://explorer-bradbury.genlayer.com/tx/0x0ea23f4e4112a452ba7ffd8855a86d0b5849452d3f44b11f600518c18f8f5025
+
+Resolution:
+https://explorer-bradbury.genlayer.com/tx/0x7099d23fcf92f4274973ac629ddb6812ad2c357471e07bc34c4614594a11a2b3
+
+The submission finalized on 3 October 2026 at 17:28:55 Australia/Sydney.
+The resolution finalized at 18:31:14 Australia/Sydney.
+
+Load claim-4 without a wallet to inspect VERIFIED / HIGH, with all six facts
+matching and reason ALL_EXPECTED_FACTS_MATCH. Counts are 20 total, 17 claimed,
+3 locked, 0 other, 20 verified funding records and 0 funding mismatches.
+The evidence is the same explicitly synthetic fixture used for claim-2.
+
+The resolution journey included a leader timeout, an appeal, acceptance and
+finalization. A submission tracker fetch failure was recovered using the
+existing-transaction check button; the transaction was not resubmitted.
 
 ## Limits
 
