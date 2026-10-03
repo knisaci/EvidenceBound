@@ -1,32 +1,90 @@
-# React + TypeScript + Vite
+# EvidenceBound web app
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Public website: https://knisaci.github.io/EvidenceBound/
 
-Currently, two official plugins are available:
+EvidenceBound helps report reviewers compare six declared record-set counts
+with facts extracted from public evidence through GenLayer validator consensus.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Review an existing result — no wallet required
 
-## React Compiler
+1. Open the public website.
+2. In "Explore on-chain evidence", enter claim-2.
+3. Click "Load claim".
+4. Inspect the comparison table and public evidence link.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Expected result: PARTIALLY_VERIFIED, HIGH, with four matching facts and two
+mismatches. The claim declares 20 claimed records and zero locked records.
+The explicitly synthetic evidence establishes 17 claimed and three locked.
+All 20 funding records are verified.
 
-## Expanding the Oxlint configuration
+Reason codes:
+- CLAIMED_RECORDS_MISMATCH
+- LOCKED_RECORDS_MISMATCH
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+## Submit and resolve a new claim
 
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
-```
+1. Connect an EVM browser wallet and select Bradbury testnet.
+2. Enter a subject, one to five public HTTPS evidence URLs, an evidence
+   manifest digest, UTC reporting dates, and all six claimed counts.
+3. Status counts must sum to total records. Verified funding records plus
+   funding mismatches must also sum to total records.
+4. Click "Submit claim", review the wallet request, and approve.
+5. Track the transaction through acceptance and finalization.
+6. Click "Find submitted claim ID" to retrieve the exact returned ID.
+7. Enter that ID in "Resolve a claim" and approve the resolution transaction.
+8. Track finalization, then load the claim to inspect the stored verdict.
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+The prefilled example is synthetic. Changing claim fields requires evidence
+and a manifest digest appropriate to the new claim.
+
+Acceptance is provisional. In our demonstrated transactions, finalization
+took about 30 minutes after acceptance. Network timings can vary.
+If tracking times out, use the existing-transaction check button. Transaction
+hashes are retained in browser storage for the same website origin.
+
+## Why GenLayer is central
+
+The frontend calls the deployed Intelligent Contract. Validators independently
+retrieve evidence and extract a canonical fact object. Consensus covers those
+facts, and deterministic contract code compares all six claimed counts.
+The website does not generate or substitute its own adjudication.
+
+## Deployment and verification
+
+Network: GenLayer Bradbury testnet
+Contract: 0x490817c879b019a5099F937EaF5672bCA887DfA3
+
+Finalized website submission, claim-2:
+https://explorer-bradbury.genlayer.com/tx/0x0cf4dcf5c1d9d3b0dcf6c9fb56736822470bd43a22841b70e4747da2652376dc
+
+Finalized website resolution, claim-2:
+https://explorer-bradbury.genlayer.com/tx/0xe39b3737ed48789a88cd5c1831b009b1fa3487da91583a178c85f85855a39b83
+
+These writes were tested through the local frontend.
+Public-site contract reads and Rabby connection were separately verified.
+A further submission returned claim-3; its return-data discovery was verified.
+
+## Limits
+
+- Testnet application supporting RECORD_SET_CLAIM_V1 only.
+- Demo evidence is synthetic, not a real-world audit.
+- The manifest digest is stored but not recomputed by the contract.
+- Evidence must be publicly accessible; private evidence is unsupported.
+- Live evidence may change between submission and resolution.
+- The HIGH confidence label reflects the contract's count-consistency rule;
+  it is not a calibrated probability or guarantee of factual accuracy.
+- Wallet discovery targets injected EVM browser wallets. Rabby was tested.
+  Mobile WalletConnect integration is not included.
+- Exact claim-ID discovery depends on the network execution-trace endpoint.
+
+## Run locally
+
+Tested with Node 24.
+
+npm ci
+npm run dev
+
+Production build:
+npm run build
+
+GitHub Pages builds from main with the /EvidenceBound/ asset base.

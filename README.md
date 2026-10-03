@@ -1,6 +1,14 @@
 # EvidenceBound
 
-EvidenceBound is a standalone GenLayer Intelligent Contract for adjudicating a
+## Web app and Project review
+
+Live app: https://knisaci.github.io/EvidenceBound/
+
+The app connects an EVM browser wallet, submits structured evidence claims, resolves them through GenLayer, tracks transaction finalization, and displays claimed-versus-established facts.
+
+Start with [the frontend review guide](frontend/README.md). Load `claim-2` for the finalized synthetic demonstration without a wallet.
+
+EvidenceBound includes a web app and a GenLayer Intelligent Contract for adjudicating a
 precisely scoped claim against declared public evidence.
 
 It is not a general-purpose fact checker. Version 0.3 deliberately supports one
