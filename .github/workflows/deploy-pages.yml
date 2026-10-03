@@ -2,7 +2,7 @@ name: Deploy EvidenceBound website
 
 on:
   push:
-    branches: ["project/frontend"]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
