@@ -1,5 +1,6 @@
+import { hexToBytes } from 'viem'
 import { useState } from 'react'
-import { createClient } from 'genlayer-js'
+import { createClient, abi } from 'genlayer-js'
 import { testnetBradbury } from 'genlayer-js/chains'
 import { TransactionStatus } from 'genlayer-js/types'
 import { describeError, getWalletProvider } from './walletSession'
@@ -24,6 +25,7 @@ export default function TransactionPanel() {
   const [status, setStatus] = useState('')
   const [receipt, setReceipt] = useState('')
   const [error, setError] = useState('')
+  const [createdClaimId, setCreatedClaimId] = useState('')
 
 
   const [subject, setSubject] = useState('Synthetic funding-record audit — website test')
@@ -107,6 +109,71 @@ export default function TransactionPanel() {
     }
 
     return { urls, facts, start: BigInt(start), end: BigInt(end) }
+  }
+
+
+  async function identifyClaim() {
+    setBusy(true)
+    setError('')
+    setCreatedClaimId('')
+    try {
+      if (!/^0x[0-9a-fA-F]{64}$/.test(hash)) {
+        throw new Error('No valid submission transaction to inspect.')
+      }
+
+      const transactionHash = hash as Parameters<typeof readClient.getTransaction>[0]['hash']
+      const transaction = await readClient.getTransaction({ hash: transactionHash })
+
+      if (
+        transaction.recipient?.toLowerCase() !== ADDRESS.toLowerCase() ||
+        transaction.txExecutionResultName !== 'FINISHED_WITH_RETURN' ||
+        transaction.resultName !== 'AGREE'
+      ) {
+        throw new Error('This transaction does not show successful execution for EvidenceBound.')
+      }
+
+      const trace = await readClient.debugTraceTransaction({
+        hash: transactionHash,
+        round: Number(transaction.lastRound?.round ?? 0),
+      })
+
+      if (trace.result_code !== 0 || !trace.return_data) {
+        throw new Error('Successful return data is not available yet.')
+      }
+
+      const decoded = abi.calldata.decode(
+        hexToBytes(trace.return_data as `0x${string}`)
+      )
+
+      if (!(decoded instanceof Map) || decoded.get('kind') !== 'Return') {
+        throw new Error('Unexpected execution return format.')
+      }
+
+      const id = decoded.get('data')
+      if (typeof id !== 'string' || !/^claim-[1-9][0-9]*$/.test(id)) {
+        throw new Error('The transaction did not return a claim ID.')
+      }
+
+      const stored = await readClient.readContract({
+        address: ADDRESS,
+        functionName: 'get_claim',
+        args: [id],
+      })
+
+      if (
+        !stored || typeof stored !== 'object' ||
+        !('submitter' in stored) || typeof stored.submitter !== 'string' ||
+        stored.submitter.toLowerCase() !== transaction.sender?.toLowerCase()
+      ) {
+        throw new Error('The stored claim could not be confirmed against the transaction sender.')
+      }
+
+      setCreatedClaimId(id)
+    } catch (err) {
+      setError(describeError(err))
+    } finally {
+      setBusy(false)
+    }
   }
 
   async function track(transactionHash: Parameters<typeof readClient.waitForTransactionReceipt>[0]['hash']) {
@@ -258,6 +325,20 @@ export default function TransactionPanel() {
           </button>
         )}
       </div>
+
+      {hash && (
+        <div className="controls">
+          <button disabled={busy} onClick={identifyClaim}>
+            Find submitted claim ID
+          </button>
+        </div>
+      )}
+      {createdClaimId && (
+        <p role="status">
+          Your submitted claim: <strong>{createdClaimId}</strong>.
+          Enter this ID in the resolution or exploration section.
+        </p>
+      )}
       {status && <p role="status">{status}</p>}
       {hash && (
         <p>
